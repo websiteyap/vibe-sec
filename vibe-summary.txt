@@ -1,9 +1,9 @@
 # 🛡️ VIBE SECURITY SUMMARY
-# Otomatik üretildi: 25.02.2026 22:37:44
+# Otomatik üretildi: 25.02.2026 23:26:16
 # Bu dosyayı AI araçlarına (Cursor, Copilot, vb.) context olarak verin.
 
 ## 📊 PROJE GÜVENLİK DURUMU
-🚨 DURUM: KRİTİK — 12 kritik, 7 uyarı, 5 bilgi
+🚨 DURUM: KRİTİK — 11 kritik, 2 uyarı, 0 bilgi
 
 ## 📜 ZORUNLU GÜVENLİK KURALLARI
 
@@ -15,7 +15,6 @@
 ### 2. SUPABASE RLS
 - Bu projede RLS ZORUNLUDUR.
 - Her tabloda auth.uid() bazlı politikalar olmalıdır.
-- Kullanılan tablolar: users, posts, comments, user_settings, private_messages
 
 ### 3. SQL INJECTION
 - Template literal (${}) ile SQL OLUŞTURULMAZ.
@@ -43,106 +42,11 @@
 🔴 [CRITICAL] 🚨 GÜVENLİK RİSKİ: 'NEXT_PUBLIC_API_SECRET' istemci tarafına ifşa ediliyor! → .env.local:23
 🔴 [CRITICAL] 🚨 GÜVENLİK RİSKİ: 'NEXT_PUBLIC_STRIPE_SECRET_KEY' istemci tarafına ifşa ediliyor! → .env.local:26
 🔴 [CRITICAL] 🚨 GÜVENLİK RİSKİ: 'NEXT_PUBLIC_STRIPE_SECRET_KEY' istemci tarafına ifşa ediliyor! → .env.local:26
-🔴 [CRITICAL] 💉 SQL INJECTION RİSKİ: supabase.rpc() içinde template literal → src\lib\test-security-cases.ts:21
-🔴 [CRITICAL] 💉 SQL INJECTION RİSKİ: Ham SQL'de template literal → src\lib\test-security-cases.ts:27
+🔴 [CRITICAL] 🔴 Veritabanı Bağlantı Hatası: password authentication failed for user "user" → .env.local
 🔴 [CRITICAL] 🔑 Serper.dev API anahtarı NEXT_PUBLIC_ ile ifşa ediliyor! → .env.local:35
 🔴 [CRITICAL] 🔑 OpenAI API anahtarı NEXT_PUBLIC_ ile ifşa ediliyor! → .env.local:38
 🟡 [WARNING] 🚨 GÜVENLİK RİSKİ: 'NEXT_PUBLIC_SMTP_PASSWORD' istemci tarafına ifşa ediliyor! → .env.local:32
 🟡 [WARNING] 🚨 GÜVENLİK RİSKİ: 'NEXT_PUBLIC_SMTP_PASSWORD' istemci tarafına ifşa ediliyor! → .env.local:32
-🟡 [WARNING] 🔑 Serper.dev istemci tarafı kodda referans ediliyor! → src/lib/test-security-cases.ts:45
-🟡 [WARNING] 🔑 Serper.dev istemci tarafı kodda referans ediliyor! → src/lib/test-security-cases.ts:47
-🟡 [WARNING] 🔑 Serper.dev istemci tarafı kodda referans ediliyor! → src/lib/test-security-cases.ts:50
-🟡 [WARNING] 🔑 OpenAI istemci tarafı kodda referans ediliyor! → src/lib/test-security-cases.ts:63
-🟡 [WARNING] 🔑 OpenAI istemci tarafı kodda referans ediliyor! → src/lib/test-security-cases.ts:60
-🔵 [INFO] 📋 'users' tablosu kullanılıyor — RLS durumu kontrol edilmeli → src\lib\test-security-cases.ts:39, src\lib\test-supabase-queries.ts:34
-🔵 [INFO] 📋 'posts' tablosu kullanılıyor — RLS durumu kontrol edilmeli → src\lib\test-supabase-queries.ts:27
-🔵 [INFO] 📋 'comments' tablosu kullanılıyor — RLS durumu kontrol edilmeli → src\lib\test-supabase-queries.ts:44
-🔵 [INFO] 📋 'user_settings' tablosu kullanılıyor — RLS durumu kontrol edilmeli → src\lib\test-supabase-queries.ts:52
-🔵 [INFO] 📋 'private_messages' tablosu kullanılıyor — RLS durumu kontrol edilmeli → src\lib\test-supabase-queries.ts:61
-
-## 📝 HAZIR SQL REÇETELERİ
-```sql
--- 🛡️ RLS: "users"
-ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "users_select_own" ON public.users
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "users_insert_own" ON public.users
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "users_update_own" ON public.users
-  FOR UPDATE USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "users_delete_own" ON public.users
-  FOR DELETE USING (auth.uid() = user_id);
-
--- 🛡️ RLS: "posts"
-ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "posts_select_own" ON public.posts
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "posts_insert_own" ON public.posts
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "posts_update_own" ON public.posts
-  FOR UPDATE USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "posts_delete_own" ON public.posts
-  FOR DELETE USING (auth.uid() = user_id);
-
--- 🛡️ RLS: "comments"
-ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "comments_select_own" ON public.comments
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "comments_insert_own" ON public.comments
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "comments_update_own" ON public.comments
-  FOR UPDATE USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "comments_delete_own" ON public.comments
-  FOR DELETE USING (auth.uid() = user_id);
-
--- 🛡️ RLS: "user_settings"
-ALTER TABLE public.user_settings ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "user_settings_select_own" ON public.user_settings
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "user_settings_insert_own" ON public.user_settings
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "user_settings_update_own" ON public.user_settings
-  FOR UPDATE USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "user_settings_delete_own" ON public.user_settings
-  FOR DELETE USING (auth.uid() = user_id);
-
--- 🛡️ RLS: "private_messages"
-ALTER TABLE public.private_messages ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "private_messages_select_own" ON public.private_messages
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "private_messages_insert_own" ON public.private_messages
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "private_messages_update_own" ON public.private_messages
-  FOR UPDATE USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "private_messages_delete_own" ON public.private_messages
-  FOR DELETE USING (auth.uid() = user_id);
-
-```
 
 ---
 Güncelleme: npm run security | Config: vibe-security.config.js

@@ -8,6 +8,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const { scanRLS: performRLSScan } = require('./rls-scanner');
 
 // ─── ANSI Colors ───
 const C = {
@@ -306,7 +307,7 @@ function loadConfig(projectRoot) {
 // ================================================================
 // ─── MAIN SCAN ───
 // ================================================================
-function runScan() {
+async function runScan() {
     const projectRoot = process.cwd();
     const config = loadConfig(projectRoot);
 
@@ -361,30 +362,31 @@ function runScan() {
         }
     }
 
+    let dbTables = new Map();
     // ─── 2. RLS Scanner ───
     if (config.rlsScanner?.enabled) {
-        console.log(`${C.cyan}  🛡️ RLS Denetçisi çalışıyor...${C.reset}`);
+        console.log(`${C.cyan}  🛡️ RLS Denetçisi (DB Modu) çalışıyor...${C.reset}`);
         const whitelisted = config.rlsScanner.whitelistedTables || [];
-        const tables = findSupabaseFromCalls(allFiles, projectRoot);
 
-        // Yorum satırlarındaki ve scanner dosyalarındaki tablolar filtrelenir
-        const filteredTables = new Map();
-        for (const [table, usages] of tables) {
-            const realUsages = usages.filter(u => !u.file.includes('security-watchdog'));
-            if (realUsages.length > 0) filteredTables.set(table, realUsages);
+        // ENV üzerinden DATABASE_URL bulalım
+        let databaseUrl = process.env.DATABASE_URL;
+        if (!databaseUrl) {
+            const dbEntry = allEnvEntries.find(e =>
+                e.key === 'DATABASE_URL' ||
+                e.key === 'SUPABASE_DB_URL' ||
+                e.key === 'NEXT_PUBLIC_DATABASE_URL' ||
+                e.key === 'NEXT_PUBLIC_SUPABASE_DB_URL'
+            );
+            if (dbEntry) databaseUrl = dbEntry.value;
         }
 
-        console.log(`${C.dim}     ├─ ${filteredTables.size} benzersiz tablo bulundu${C.reset}`);
+        const { issues: rlsIssues, filteredTables } = await performRLSScan(databaseUrl, whitelisted);
+        dbTables = filteredTables;
 
-        for (const [tableName, usages] of filteredTables) {
-            if (whitelisted.includes(tableName)) continue;
-            issues.push({
-                severity: 'info', category: 'rls-check', table: tableName,
-                title: `📋 '${tableName}' tablosu kullanılıyor — RLS durumu kontrol edilmeli`,
-                message: `Bu tablo ${usages.length} yerde kullanılıyor. RLS'in aktif olduğundan emin olun.`,
-                file: usages.map(u => `${u.file}:${u.line}`).join(', ')
-            });
-        }
+        console.log(`${C.dim}     ├─ ${filteredTables.size} benzersiz tablo bulundu (Veritabanı)${C.reset}`);
+
+        // Sorunları ana listeye ekle
+        issues.push(...rlsIssues);
 
         // ─── SQL Reçeteleri ───
         if (filteredTables.size > 0) {
@@ -480,13 +482,7 @@ function runScan() {
     }
 
     // ─── vibe-summary.txt ───
-    const tables = findSupabaseFromCalls(allFiles, projectRoot);
-    const filteredTables = new Map();
-    for (const [table, usages] of tables) {
-        const realUsages = usages.filter(u => !u.file.includes('security-watchdog'));
-        if (realUsages.length > 0) filteredTables.set(table, realUsages);
-    }
-    generateAndWriteSummary(projectRoot, config, issues, filteredTables);
+    generateAndWriteSummary(projectRoot, config, issues, dbTables);
 
     console.log(DLINE);
     console.log(`  ${C.dim}Tarama: ${new Date().toLocaleTimeString('tr-TR')} | Config: vibe-security.config.js${C.reset}`);
@@ -580,5 +576,8 @@ if (process.argv.includes('--watch')) {
         }, 500);
     });
 } else {
-    runScan();
+    runScan().catch(err => {
+        console.error(`${C.red}Kritik Hata: ${err.message}${C.reset}`);
+        process.exit(1);
+    });
 }
