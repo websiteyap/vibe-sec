@@ -1,30 +1,27 @@
 {
-  "name": "vibe-sec",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "security": "node security-watchdog.js",
-    "security:watch": "node security-watchdog.js --watch"
+  "name": "vibe-security",
+  "version": "2.0.0",
+  "description": "Vibe Security Watchdog v2.0 - Standalone CLI for Next.js and Supabase",
+  "main": "dist/security-watchdog.js",
+  "bin": {
+    "vibe-sec": "dist/security-watchdog.js"
   },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "author": "Vibe",
+  "license": "MIT",
   "dependencies": {
-    "next": "16.1.6",
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "chalk": "^4.1.2",
+    "chokidar": "^3.5.3",
+    "dotenv": "^16.3.1"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "chokidar": "^5.0.0",
-    "eslint": "^9",
-    "eslint-config-next": "16.1.6",
-    "glob": "^13.0.6",
-    "tailwindcss": "^4",
-    "typescript": "^5"
-  }
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "dist"
+  ]
 }
